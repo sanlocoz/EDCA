@@ -5,18 +5,70 @@
 
 import numpy as np
 import os
+import re
 import pandas as pd
 import matplotlib.pyplot as plt
 from statsmodels.graphics.tsaplots import plot_acf
 from statsmodels.tsa.stattools import acf
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.stattools import adfuller
+from datetime import datetime
 
-dir = "D:\Wageningen\Period 1\EDCA\Part 2\Raw Data\Stuw\data"
+dir = "C:\\Users\\user\\Downloads\\Programs\\EDCA2\\data"
+output_dir = "C:\\Users\\user\\Downloads\\Programs\\EDCA2\\output"
 os.chdir(dir)
 
 files = os.listdir(dir)
-files
+
+def convert_date_format(input_date):
+    #input is DD/MM/YYYY 
+    list = input_date.split(" ")
+    print(list)
+    converted_date = ""
+    
+    if(len(list)==1):
+        print(list[0])
+        ans = list[0].split("-")
+        print(ans)
+        converted_date = str(ans[1]) + "/" + str(ans[0]) + "/" + str(ans[2]) + " 00:00"
+    else:
+        print(list[0])
+        ans = list[0].split("-")
+        print(ans)
+        converted_date = str(ans[1]) + "/" + str(ans[0]) + "/" + str(ans[2])
+    return converted_date
+
+ans = []
+for i in range(0, 7):#len(files)):
+    os.chdir(dir)
+    file_name = files[i]
+    df = pd.read_csv(files[i], sep=";", dtype={'Date': parse_as_string})
+    
+    if(file_name.split("_")[0]=='1'): #data
+        start_date = convert_date_format(df.Date[0])
+        end_date = convert_date_format(df.Date[len(df)-1])
+        timestamps = pd.date_range(start=start_date, end=end_date, freq='h')  
+        length = len(timestamps)
+        df_right =  pd.DataFrame({'Discharge': [np.nan] * length, 'h': [np.nan] * length, 'Upstream': [np.nan] * length}, index = timestamps)
+        
+        for j in range(0, len(df)):
+            print(j)
+            date_now = pd.Timestamp(convert_date_format(df.iloc[j]['Date']))
+  
+            df_right.loc[date_now]['Discharge'] = df.iloc[j]['Discharge']
+            df_right.loc[date_now]['h'] = df.iloc[j]['h']
+            df_right.loc[date_now]['Upstream'] = df.iloc[j]['Upstream']
+        
+        os.chdir(output_dir)
+        df_right.to_csv(files[i]+'.csv', index=True, sep = ";")
+        ans.append(df_right)
+        
+        
+    #elif(file_name.split("_")[0]=='2'):
+     #   continue
+            
+    
+"""
 
 for i in range(0, 1):#len(files)):
     os.chdir(dir)
@@ -115,13 +167,13 @@ for i in range(0, 1):#len(files)):
 
     #print(f'ARIMA Model Test Data MSE: {np.mean((predictions.values - test2.values)**2):.3f}')
     
-    
-    '''
-    plot_acf(df['Discharge'].dropna(), lags=20)
-    plot_acf(df['Upstream'].dropna(), lags=20)
-    plot_acf(df['Downstream'].dropna(), lags=20)
-    plot_acf(df['Valve'].dropna(), lags=20)
-    '''
+"""
+'''
+plot_acf(df['Discharge'].dropna(), lags=20)
+plot_acf(df['Upstream'].dropna(), lags=20)
+plot_acf(df['Downstream'].dropna(), lags=20)
+plot_acf(df['Valve'].dropna(), lags=20)
+'''
     
 '''
 import pandas as pd
